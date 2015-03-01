@@ -1,0 +1,7 @@
+TestMod.gui.config.title = "Config GUI"
+
+TestMod.config.cat.weather = "Weather Config"
+TestMod.config.cat.weather.tooltip = "Section for weather related propertys"
+
+TestMod.config.prop.test_prop = "Test Property"
+TestMod.config.prop.test_prop.tooltip = "This is a test property. Valid entries are:\n1 Blah\n2BlahBlah\n3 Nah"

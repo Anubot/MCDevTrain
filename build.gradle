@@ -1,0 +1,134 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+buildscript {
+  repositories {
+    mavenCentral()
+    maven {
+      name = "forge"
+      url = "http://files.minecraftforge.net/maven"
+    }
+    maven {
+      name = "sonatype"
+      url = "https://oss.sonatype.org/content/repositories/snapshots/"
+    }
+  }
+  dependencies {
+    classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
+  }
+}
+
+apply plugin: 'scala'
+apply plugin: 'forge'
+
+group = "me.anubot" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+archivesBaseName = "TestMod"
+
+// Define properties file
+ext.configFile = file "build.properties"
+configFile.withReader {
+  // Load config.  It shall from now be referenced as simply config or project.config
+  def prop = new Properties()
+  prop.load(it)
+  project.ext.config = new ConfigSlurper().parse prop
+}
+
+repositories {
+  maven {
+    name = "chickenbones"
+    url = "http://chickenbones.net/maven/"
+  }
+}
+
+dependencies {
+  // you may put jars on which you depend on in ./libs
+  // or you may define them like so..
+  //compile "some.group:artifact:version:classifier"
+  //compile "some.group:artifact:version"
+
+  // real examples
+  //compile 'com.mod-buildcraft:buildcraft:6.0.8:dev'  // adds buildcraft to the dev env
+  //compile 'com.googlecode.efficient-java-matrix-library:ejml:0.24' // adds ejml to the dev env
+
+  // for more info...
+  // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
+  // http://www.gradle.org/docs/current/userguide/dependency_management.html
+  compile "codechicken:CodeChickenLib:${config.mc.version}-${config.ccl.version}:dev"
+  compile "codechicken:CodeChickenCore:${config.mc.version}-${config.ccc.version}:dev"
+  compile "codechicken:NotEnoughItems:${config.mc.version}-${config.nei.version}:dev"
+}
+
+def build_number = project.hasProperty("manBuild") ? project.manBuild : (Integer.parseInt(System.getenv("BUILD_NUMBER") ?: "1")+51).toString()
+version = "${project.config.mod.version}." + build_number
+
+minecraft {
+  version = config.mc.version + "-" + config.forge.version
+  runDir = "run"
+}
+
+sourceSets {
+  main {
+    output.resourcesDir = output.classesDir
+  }
+  test {
+    output.resourcesDir = output.classesDir
+  }
+}
+
+task updateVersion(type: Copy) {
+  // Replace tokens
+  from(sourceSets.main.scala.srcDirs)
+  into 'build/sources/scala'
+  filter(ReplaceTokens, tokens: [
+    'MODID'         : config.mod.id,
+    'MODNAME'       : config.mod.name,
+    'VERSION'       : config.mod.version,
+    'BUILD_NUMBER'  : build_number,
+    'CONFIG_GLOBAL' : config.mod.global,
+    'CONFIG_WORLD'  : config.mod.world,
+    'CONFIG_PLAYER' : config.mod.player,
+    'MC_VERSION'    : config.mc.version,
+    'FORGE_VERSION' : config.forge.version,
+    'CCL_VERSION'   : config.ccl.version,
+    'CCC_VERSION'   : config.ccc.version
+  ])
+}
+
+processResources
+{
+  // this will ensure that this task is redone when the versions change.
+  inputs.property "version", project.version
+  inputs.property "mc.version", config.mc.version
+  inputs.property "forge.version", config.forge.version
+  inputs.property "ccl.version", config.ccl.version
+  inputs.property "ccc.version", config.ccc.version
+
+  // replace stuff in mcmod.info, nothing else
+  from(sourceSets.main.resources.srcDirs) {
+    include '**.info'
+    filter(ReplaceTokens, tokens: [
+      'MODID'        : config.mod.id,
+      'MODNAME'      : config.mod.name,
+      'VERSION'      : config.mod.version,
+      'BUILD_NUMBER' : build_number,
+      'CONFIG_GLOBAL' : config.mod.global,
+      'CONFIG_WORLD'  : config.mod.world,
+      'CONFIG_PLAYER' : config.mod.player,
+      'MC_VERSION'   : config.mc.version,
+      'FORGE_VERSION': config.forge.version,
+      'CCL_VERSION'  : config.ccl.version,
+      'CCC_VERSION'  : config.ccc.version
+    ])
+  }
+
+  // Copy everything else
+  from(sourceSets.main.resources.srcDirs) {
+    include 'assets/**/*.*'
+  }
+
+  // copy everything else, thats not the mcmod.info
+  //from(sourceSets.main.resources.srcDirs) {
+    //exclude 'mcmod.info'
+  //}
+}
+
+compileScala.dependsOn updateVersion
