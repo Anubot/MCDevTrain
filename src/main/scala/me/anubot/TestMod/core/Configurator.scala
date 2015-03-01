@@ -10,30 +10,44 @@ import net.minecraftforge.common.UsernameCache
 
 import scala.collection.immutable.TreeMap
 
+/** Factory to initialize and manage mod configurations */
 object Configurator {
+  // ------ START CONSTANT DEFINITION ------ //
   final val modID: String = "@MODID@"
   final val modName: String = "@MODNAME@"
   final val version: String = "@VERSION@"
+  final val buildNumber: String = "@BUILD_NUMBER@"
   final val globalConfigVer: String = "@CONFIG_GLOBAL@"
   final val worldConfigVer: String = "@CONFIG_WORLD@"
   final val playerConfigVer: String = "@CONFIG_PLAYER@"
-  final val buildNumber: String = "@BUILD_NUMBER@"
+  // ------ END CONSTANT DEFINITION ------ //
+
   val global: ConfigBase = new ConfigBase
   val world: ConfigBase = new ConfigBase
   var players: Map[UUID, ConfigBase] = new TreeMap[UUID, ConfigBase]
 
+  /** Initializes global configs during Minecraft startup */
   def initGlobalConfig(): Unit = {
     val configFile = new File("configs/" + Configurator.modID + ".cfg")
     ConfigBase.initConfig(ConfigBase.Type.GLOBAL, global, configFile)
     LOGGER.info("Initializing Global Configs.")
   }
 
+  /** Initializes world configs on world load
+    *
+    * @param save World name
+    */
   def initWorldConfig(save: String): Unit = {
     val configFile = new File("saves/" + save + "/" + Configurator.modID + "/world.cfg")
     ConfigBase.initConfig(ConfigBase.Type.WORLD, world, configFile)
     LOGGER.info("Initializing World Configs.")
   }
 
+  /** Initializes player configs on player join
+    *
+    * @param save World name
+    * @param uid Player UUID
+    */
   def initPlayerConfig(save: String, uid: UUID): Unit = {
     val configFile = new File("saves/" + save + "/" + Configurator.modID + "/players/" + uid.toString + ".cfg")
     val player = new ConfigBase
@@ -41,16 +55,18 @@ object Configurator {
     players += uid -> player
     LOGGER.info("Initializing " + UsernameCache.getLastKnownUsername(uid) + " Configs.")
   }
-}
 
-class Configurator {
+  /** Update configs when GuiConfig screen closes
+   *
+   * @param event Mod loader config changed
+   */
   @SubscribeEvent
   def onConfigChangedEvent(event: ConfigChangedEvent.OnConfigChangedEvent): Unit = {
-    if(Configurator.modID.equals(event.modID)) {
+    if(modID.equals(event.modID)) {
 
       val t: String = event.configID
 
-      import me.anubot.TestMod.core.ConfigBase.Type._
+      import ConfigBase.Type._
       t match {
         case GLOBAL.toString => Configurator.global.syncConfig;
         case WORLD.toString => Configurator.world.syncConfig;

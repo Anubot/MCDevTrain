@@ -7,7 +7,13 @@ import cpw.mods.fml.client.config.DummyConfigElement.DummyCategoryElement
 import cpw.mods.fml.client.config.IConfigElement
 import net.minecraftforge.common.config.{ConfigElement, Configuration}
 
-class ConfigBase(private var forgeConfig: Configuration = null, private var config: IConfigElement[_]= null) {
+/** The bridge between the minecraft forge configurration file and the loaded information.
+ *
+ * @constructor Parameters are set to null until [[Configurator]] initalizes them
+ * @param forgeConfig The stored forge configuration used to update the mod's configs
+ * @param config The configurations in memory
+ */
+class ConfigBase(private var forgeConfig: Configuration = null, var config: IConfigElement[_]= null) {
   def syncConfig(load: Boolean): Unit = {
     this.forgeConfig.load()
   }
@@ -15,12 +21,9 @@ class ConfigBase(private var forgeConfig: Configuration = null, private var conf
   def syncConfig(): Unit = {
     syncConfig(false)
   }
-
-  def getChildrenElements(): JList[IConfigElement[_]] = {
-    config.getChildElements
-  }
 }
 
+/** Factory to manage ConfigBase instances */
 object ConfigBase {
   object Type extends Enumeration {
     type Type = Value
