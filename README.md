@@ -6,7 +6,7 @@ teaching tool not just to myself, but anyone interested in writing a forge mod i
 findings so that the findings I make will be beneficial to others.
 
 ## Credits
-Mojang - Creators of Minecraft
-Minecraft Coder Pack team - Creators of the deobfuscation tools 
-Minecraft Forge team - Creators of the Minecraft Forge modding api
-ChickenBones - Creator of CodeChickenLib, CodeChickenCore, and NotEnoughItems
+Mojang - Creators of Minecraft<br />
+Minecraft Coder Pack team - Creators of the deobfuscation tools<br /> 
+Minecraft Forge team - Creators of the Minecraft Forge modding api<br />
+ChickenBones - Creator of CodeChickenLib, CodeChickenCore, and NotEnoughItems<br />
